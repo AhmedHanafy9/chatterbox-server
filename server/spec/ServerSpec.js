@@ -10,7 +10,6 @@ describe('Node Server Request Listener Function', function() {
     var res = new stubs.response();
 
     handler.requestHandler(req, res);
-
     expect(res._responseCode).to.equal(200);
     expect(res._ended).to.equal(true);
   });
@@ -39,7 +38,8 @@ describe('Node Server Request Listener Function', function() {
   it('Should accept posts to /classes/messages', function() {
     var stubMsg = {
       username: 'Jono',
-      text: 'Do my bidding!'
+      text: 'Do my bidding!',
+      message_id: 0
     };
     var req = new stubs.request('/classes/messages', 'POST', stubMsg);
     var res = new stubs.response();
@@ -51,7 +51,65 @@ describe('Node Server Request Listener Function', function() {
 
     // Testing for a newline isn't a valid test
     // TODO: Replace with with a valid test
-    // expect(res._data).to.equal(JSON.stringify('\n'));
+    expect(res._data).to.equal(JSON.stringify([stubMsg]));
+    expect(res._ended).to.equal(true);
+  });
+
+
+
+
+  /*  *********************
+  new test
+************************/
+
+  it('Should accept posts to /classes/messages and return all previous messages', function() {
+    var stubMsg = {
+      username: 'Ahmed',
+      text: 'Hello World',
+      message_id: 1
+    };
+    var req = new stubs.request('/classes/messages', 'POST', stubMsg);
+    var res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    // Expect 201 Created response status
+    expect(res._responseCode).to.equal(201);
+
+    req = new stubs.request('/classes/messages', 'GET');
+    res = new stubs.response();
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    var messages = JSON.parse(res._data);
+    expect(messages.length).to.be.above(0);
+    expect(messages[1].username).to.equal('Ahmed');
+    expect(messages[1].text).to.equal('Hello World');
+    expect(res._ended).to.equal(true);
+  });
+
+  it('Should accept options requests', function() {
+    var stubMsg = {
+      username: 'Jono',
+      text: 'Do my bidding!',
+      message_id: 0
+    };
+
+    var req = new stubs.request('/classes/messages', 'OPTIONS');
+    var res = new stubs.response();
+    var defaultCorsHeaders = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'access-control-allow-headers': 'content-type, accept, authorization',
+      'access-control-max-age': 10,
+      'Content-Type': 'application/json'
+    };
+
+    handler.requestHandler(req, res);
+
+    expect(res._responseCode).to.equal(200);
+    expect(res._headers).to.eql(defaultCorsHeaders);
     expect(res._ended).to.equal(true);
   });
 
