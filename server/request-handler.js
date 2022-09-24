@@ -55,9 +55,7 @@ var requestHandler = function(request, response) {
       var parsedBody = JSON.parse(body);
       parsedBody.message_id = uniqueID;
       uniqueID++;
-      console.log(parsedBody);
       messagesDatabase.push(parsedBody);
-      console.log(messagesDatabase);
       response.writeHead(statusCode, headers);
       response.end(JSON.stringify(messagesDatabase));
     });
